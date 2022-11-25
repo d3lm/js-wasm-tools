@@ -4,7 +4,7 @@
   "author": "Dominic Elm",
   "description": "JavaScript version of wasm-tools, low level tooling for WebAssembly in Rust",
   "type": "module",
-  "license": "apache-2.0",
+  "license": "MIT",
   "main": "./dist/js_wasm_tools.js",
   "types": "./dist/js_wasm_tools.d.ts",
   "exports": {
