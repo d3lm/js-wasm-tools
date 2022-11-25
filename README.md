@@ -2,13 +2,15 @@
 
 `js-wasm-tools` compiles some of the API of [wasm-tools](https://github.com/bytecodealliance/wasm-tools) to JavaScript and WebAssembly via [`wasm-bindgen`](https://github.com/rustwasm/wasm-bindgen). This offers low level tooling for WebAssembly in JavaScript, such as parsing WAT (WebAssembly Text Format) into bytes, translating the WebAssembly binary format to text, and more.
 
-This package is meant to be used on the Web.
-
 ## Install
 
 ```sh
 npm install js-wasm-tools
 ```
+
+## Playground
+
+You can try it out live on [StackBlitz.com](https://stackblitz.com/edit/js-wasm-tools?file=index.js).
 
 ## Usage
 
@@ -23,6 +25,27 @@ await initWasmTools(WASM_TOOLS_WASM_URL);
 const source = '(module)';
 
 const binary = wasmTools.parseWat(source);
+```
+
+With Node.js:
+
+```js
+import initWasmTools, * as wasmTools from 'js-wasm-tools';
+import fs from 'node:fs';
+import path from 'node:path';
+import * as url from 'url';
+
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
+
+const bytes = fs.readFileSync(path.join(__dirname, 'node_modules/js-wasm-tools/dist/js_wasm_tools_bg.wasm'));
+
+await initWasmTools(bytes);
+
+const source = '(module)';
+
+const binary = wasmTools.parseWat(source);
+
+console.log(binary);
 ```
 
 ## API
