@@ -1,0 +1,34 @@
+{
+  "name": "js-wasm-tools",
+  "version": "1.0.0",
+  "author": "Dominic Elm",
+  "description": "JavaScript version of wasm-tools, low level tooling for WebAssembly in Rust",
+  "type": "module",
+  "license": "apache-2.0",
+  "main": "./dist/js_wasm_tools.js",
+  "types": "./dist/js_wasm_tools.d.ts",
+  "exports": {
+    ".": "./dist/js_wasm_tools.js",
+    "./wasm_tools_js_bg.wasm": "./dist/js_wasm_tools_bg.wasm"
+  },
+  "typesVersions": {
+    "*": {
+      "wasm_tools_js_bg.wasm": [
+        "./dist/js_wasm_tools_bg.wasm.d.ts"
+      ]
+    }
+  },
+  "scripts": {
+    "build": "cd scripts; ./build.sh"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "wasm-tools",
+    "webassembly"
+  ],
+  "devDependencies": {
+    "prettier": "^2.8.0"
+  }
+}
