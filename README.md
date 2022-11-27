@@ -92,7 +92,7 @@ expect(wat).toEqual('(module)');
 Parses a string as the WebAssembly Text format, and desugars the module, e.g. unfolding expressions.
 
 ```js
-const { wat, bytes } = wasmTools.printBytes(`
+const { wat, bytes } = wasmTools.desugarWat(`
   (module
     (func $foo
       (call $bar (i32.const 1) (i32.const 2))
