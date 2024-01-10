@@ -19,7 +19,8 @@
     }
   },
   "scripts": {
-    "build": "cd scripts; ./build.sh"
+    "build": "cd scripts; ./build.sh",
+    "prepack": "pnpm run build"
   },
   "files": [
     "dist"
