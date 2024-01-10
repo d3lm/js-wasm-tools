@@ -38,3 +38,5 @@ rm -rf dist/**/*
 runBuild "dist"
 
 rm -rf $output
+
+echo "Done"

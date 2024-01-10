@@ -1,8 +1,5 @@
 use serde::{Serialize, Serializer};
-use wasmparser::{
-  types::{Type, Types as ExternalTypes},
-  ValType,
-};
+use wasmparser::{types::ComponentCoreTypeId, types::Types as ExternalTypes, ValType};
 
 pub struct Types(pub(crate) ExternalTypes);
 
@@ -53,8 +50,7 @@ impl<'a> Into<String> for ValueType<'a> {
       ValType::F32 => String::from("f32"),
       ValType::F64 => String::from("f64"),
       ValType::V128 => String::from("v128"),
-      ValType::FuncRef => String::from("funcref"),
-      ValType::ExternRef => String::from("externref"),
+      ValType::Ref(ref_type) => ref_type.to_string(),
     }
   }
 }
@@ -81,72 +77,80 @@ impl Serialize for Types {
 
 fn serialize_elements(types: &ExternalTypes) -> Vec<String> {
   (0..types.element_count() as u32)
-    .filter_map(|index| match types.element_at(index) {
-      Some(element) => Some(ValueType(&element).into()),
-      _ => None,
-    })
+    .map(|index| ValueType(&ValType::Ref(types.element_at(index))).into())
     .collect::<Vec<String>>()
 }
 
 fn serialize_tables(types: &ExternalTypes) -> Vec<TableType> {
   (0..types.table_count() as u32)
-    .filter_map(|index| match types.table_at(index) {
-      Some(table) => Some(TableType {
+    .map(|index| {
+      let table = types.table_at(index);
+
+      TableType {
         initial: table.initial,
         maximum: table.maximum,
-        element_type: ValueType(&table.element_type).into(),
-      }),
-      _ => None,
+        element_type: ValueType(&ValType::Ref(table.element_type)).into(),
+      }
     })
     .collect::<Vec<TableType>>()
 }
 
 fn serialize_memories(types: &ExternalTypes) -> Vec<MemoryType> {
   (0..types.memory_count() as u32)
-    .filter_map(|index| match types.memory_at(index) {
-      Some(memory) => Some(MemoryType {
+    .map(|index| {
+      let memory = types.memory_at(index);
+
+      MemoryType {
         memory64: memory.memory64,
         shared: memory.shared,
         initial: memory.initial,
         maximum: memory.maximum,
-      }),
-      _ => None,
+      }
     })
     .collect::<Vec<MemoryType>>()
 }
 
 fn serialize_globals(types: &ExternalTypes) -> Vec<GlobalType> {
   (0..types.global_count() as u32)
-    .filter_map(|index| match types.global_at(index) {
-      Some(global) => Some(GlobalType {
+    .map(|index| {
+      let global = types.global_at(index);
+
+      GlobalType {
         content_type: ValueType(&global.content_type).into(),
         mutable: global.mutable,
-      }),
-      _ => None,
+      }
     })
     .collect::<Vec<GlobalType>>()
 }
 
 fn serialize_functions(types: &ExternalTypes) -> Vec<FuncType> {
-  (0..types.function_count() as u32)
-    .filter_map(|index| match types.function_at(index) {
-      Some(func_type) => Some(FuncType {
-        params: serialize_val_types(func_type.params()),
-        results: serialize_val_types(func_type.results()),
-      }),
-      _ => None,
+  (0..types.core_function_count() as u32)
+    .map(|index| {
+      let function_type_id = types.core_function_at(index);
+      let function = types[function_type_id].unwrap_func();
+
+      FuncType {
+        params: serialize_val_types(function.params()),
+        results: serialize_val_types(function.results()),
+      }
     })
     .collect::<Vec<FuncType>>()
 }
 
 fn serialize_types(types: &ExternalTypes) -> Vec<FuncType> {
   (0..types.type_count() as u32)
-    .filter_map(|index| match types.type_at(index, true) {
-      Some(Type::Func(func_type)) => Some(FuncType {
-        params: serialize_val_types(func_type.params()),
-        results: serialize_val_types(func_type.results()),
-      }),
-      _ => None,
+    .map(|index| {
+      let type_id = match types.core_type_at(index) {
+        ComponentCoreTypeId::Sub(sub_type) => sub_type,
+        ComponentCoreTypeId::Module(_) => panic!("type is expected to be a sub type"),
+      };
+
+      let function = types[type_id].unwrap_func();
+
+      FuncType {
+        params: serialize_val_types(function.params()),
+        results: serialize_val_types(function.results()),
+      }
     })
     .collect::<Vec<FuncType>>()
 }

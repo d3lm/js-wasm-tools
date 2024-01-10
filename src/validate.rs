@@ -66,6 +66,12 @@ pub struct Features {
   pub memory64: Option<bool>,
   pub extended_const: Option<bool>,
   pub component_model: Option<bool>,
+  pub component_model_values: Option<bool>,
+  pub component_model_nested_names: Option<bool>,
+  pub floats: Option<bool>,
+  pub function_references: Option<bool>,
+  pub memory_control: Option<bool>,
+  pub gc: Option<bool>,
 }
 
 impl Into<WasmFeatures> for Features {
@@ -81,12 +87,17 @@ impl Into<WasmFeatures> for Features {
       relaxed_simd: self.relaxed_simd.unwrap_or_default(),
       threads: self.threads.unwrap_or_default(),
       tail_call: self.tail_call.unwrap_or_default(),
-      deterministic_only: self.deterministic_only.unwrap_or_default(),
       multi_memory: self.multi_memory.unwrap_or_default(),
       exceptions: self.exceptions.unwrap_or_default(),
       memory64: self.memory64.unwrap_or_default(),
       extended_const: self.extended_const.unwrap_or_default(),
       component_model: self.component_model.unwrap_or_default(),
+      component_model_values: self.component_model_values.unwrap_or_default(),
+      component_model_nested_names: self.component_model_nested_names.unwrap_or_default(),
+      floats: self.floats.unwrap_or_default(),
+      function_references: self.function_references.unwrap_or_default(),
+      memory_control: self.memory_control.unwrap_or_default(),
+      gc: self.gc.unwrap_or_default(),
     }
   }
 }
