@@ -57,10 +57,12 @@ async function _runCLI() {
 
   switch (positionals[0]) {
     case 'parse': {
-      return _parseFile(positionals[1], { wat: values.wat, output: values.output });
+      _parseFile(positionals[1], { wat: values.wat, output: values.output });
+      break;
     }
     case 'print': {
-      return _parseFile(positionals[1], { wat: true, output: values.output });
+      _parseFile(positionals[1], { wat: true, output: values.output });
+      break;
     }
     case 'help': {
       _printHelp();
