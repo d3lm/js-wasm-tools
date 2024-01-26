@@ -2,7 +2,13 @@
 
 import fs from 'node:fs';
 import { parseArgs } from 'node:util';
-import initWasmTools, * as wasmTools from '../dist/js_wasm_tools.js';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
+
+const wasmTools = await import(path.join(__dirname, '../dist/js_wasm_tools.js'));
+const initWasmTools = wasmTools.default;
 
 class TextFormatter {
   #styles = [];
@@ -51,7 +57,7 @@ async function _runCLI() {
     return;
   }
 
-  const bytes = fs.readFileSync('../dist/js_wasm_tools_bg.wasm');
+  const bytes = fs.readFileSync(path.join(__dirname, '../dist/js_wasm_tools_bg.wasm'));
 
   await initWasmTools(bytes);
 
