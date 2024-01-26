@@ -138,10 +138,12 @@ const types = wasmTools.validate(
 expect(types).toEqual({
   types: [
     {
+      type: 'Func',
       params: [],
       results: ['f32'],
     },
     {
+      type: 'Func',
       params: ['i32', 'i32'],
       results: [],
     },
