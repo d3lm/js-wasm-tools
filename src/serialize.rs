@@ -1,11 +1,21 @@
 use serde::{Serialize, Serializer};
-use wasmparser::{types::ComponentCoreTypeId, types::Types as ExternalTypes, ValType};
+use wasmparser::{
+  types::ComponentCoreTypeId, types::Types as ExternalTypes, CompositeType as ExternalCompositeType, ValType,
+};
 
 pub struct Types(pub(crate) ExternalTypes);
 
 #[derive(Serialize)]
+#[serde(tag = "type")]
+enum CompositeType {
+  Func(FuncType),
+  Struct(StructType),
+  Array(FieldType),
+}
+
+#[derive(Serialize)]
 struct SerializedTypes {
-  types: Vec<FuncType>,
+  types: Vec<CompositeType>,
   functions: Vec<FuncType>,
   globals: Vec<GlobalType>,
   memories: Vec<MemoryType>,
@@ -17,6 +27,17 @@ struct SerializedTypes {
 struct FuncType {
   params: Vec<String>,
   results: Vec<String>,
+}
+
+#[derive(Serialize)]
+struct StructType {
+  fields: Vec<FieldType>,
+}
+
+#[derive(Serialize)]
+struct FieldType {
+  element_type: String,
+  mutable: bool,
 }
 
 #[derive(Serialize)]
@@ -38,21 +59,6 @@ pub struct TableType {
   element_type: String,
   initial: u32,
   maximum: Option<u32>,
-}
-
-struct ValueType<'a>(pub(crate) &'a ValType);
-
-impl<'a> Into<String> for ValueType<'a> {
-  fn into(self) -> String {
-    match self.0 {
-      ValType::I32 => String::from("i32"),
-      ValType::I64 => String::from("i64"),
-      ValType::F32 => String::from("f32"),
-      ValType::F64 => String::from("f64"),
-      ValType::V128 => String::from("v128"),
-      ValType::Ref(ref_type) => ref_type.to_string(),
-    }
-  }
 }
 
 impl Serialize for Types {
@@ -77,7 +83,7 @@ impl Serialize for Types {
 
 fn serialize_elements(types: &ExternalTypes) -> Vec<String> {
   (0..types.element_count() as u32)
-    .map(|index| ValueType(&ValType::Ref(types.element_at(index))).into())
+    .map(|index| types.element_at(index).to_string())
     .collect::<Vec<String>>()
 }
 
@@ -89,7 +95,7 @@ fn serialize_tables(types: &ExternalTypes) -> Vec<TableType> {
       TableType {
         initial: table.initial,
         maximum: table.maximum,
-        element_type: ValueType(&ValType::Ref(table.element_type)).into(),
+        element_type: table.element_type.to_string(),
       }
     })
     .collect::<Vec<TableType>>()
@@ -116,7 +122,7 @@ fn serialize_globals(types: &ExternalTypes) -> Vec<GlobalType> {
       let global = types.global_at(index);
 
       GlobalType {
-        content_type: ValueType(&global.content_type).into(),
+        content_type: global.content_type.to_string(),
         mutable: global.mutable,
       }
     })
@@ -137,7 +143,7 @@ fn serialize_functions(types: &ExternalTypes) -> Vec<FuncType> {
     .collect::<Vec<FuncType>>()
 }
 
-fn serialize_types(types: &ExternalTypes) -> Vec<FuncType> {
+fn serialize_types(types: &ExternalTypes) -> Vec<CompositeType> {
   (0..types.type_count() as u32)
     .map(|index| {
       let type_id = match types.core_type_at(index) {
@@ -145,19 +151,35 @@ fn serialize_types(types: &ExternalTypes) -> Vec<FuncType> {
         ComponentCoreTypeId::Module(_) => panic!("type is expected to be a sub type"),
       };
 
-      let function = types[type_id].unwrap_func();
-
-      FuncType {
-        params: serialize_val_types(function.params()),
-        results: serialize_val_types(function.results()),
+      match &types[type_id].composite_type {
+        ExternalCompositeType::Array(array_type) => CompositeType::Array(FieldType {
+          element_type: array_type.0.element_type.to_string(),
+          mutable: array_type.0.mutable,
+        }),
+        ExternalCompositeType::Struct(struct_type) => CompositeType::Struct(StructType {
+          fields: struct_type
+            .fields
+            .iter()
+            .map({
+              |field_type| FieldType {
+                element_type: field_type.element_type.to_string(),
+                mutable: field_type.mutable,
+              }
+            })
+            .collect(),
+        }),
+        ExternalCompositeType::Func(func_type) => CompositeType::Func(FuncType {
+          params: serialize_val_types(func_type.params()),
+          results: serialize_val_types(func_type.results()),
+        }),
       }
     })
-    .collect::<Vec<FuncType>>()
+    .collect::<Vec<CompositeType>>()
 }
 
 fn serialize_val_types(val_types: &[ValType]) -> Vec<String> {
   val_types
     .iter()
-    .map(|val_type| ValueType(val_type).into())
+    .map(|val_type| val_type.to_string())
     .collect::<Vec<String>>()
 }

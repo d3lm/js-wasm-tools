@@ -12,9 +12,9 @@ default = []
 crate-type = ["cdylib"]
 
 [dependencies]
-wat = "1.0.51"
-wasmprinter = "0.2.76"
-wasmparser = "0.119.0"
+wat = "1.0.84"
+wasmprinter = "0.2.77"
+wasmparser = "0.120.0"
 wasm-bindgen = "0.2.89"
 js-sys = "0.3.66"
 serde = { version = "1.0.195", features = ["derive"] }

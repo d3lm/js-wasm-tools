@@ -25,12 +25,41 @@ interface Features {
   memory64?: boolean;
   extended_const?: boolean;
   component_model?: boolean;
+  component_model_values?: boolean;
+  component_model_nested_names?: boolean;
+  floats?: boolean;
+  function_references?: boolean;
+  memory_control?: boolean;
+  gc?: boolean;
 }
 
-type ValueType = 'i32' | 'i64' | 'f32' | 'f64' | 'v128' | 'funcref' | 'externref';
+type StorageType = 'i8' | 'i16' | ValueType;
+type ValueType = 'i32' | 'i64' | 'f32' | 'f64' | 'v128' | 'funcref' | 'externref' | '(ref func)';
+
+interface FieldType {
+  element_type: StorageType;
+  mutable: boolean;
+}
+
+interface FuncType {
+  type: 'Func';
+  params: ValueType[];
+  results: ValueType[];
+}
+
+interface StructType {
+  type: 'Struct';
+  fields: FieldType[];
+}
+
+type ArrayType = {
+  type: 'Array';
+} & FieldType;
+
+type CompositeType = FuncType | StructType | ArrayType;
 
 interface Types {
-  types: Array<{ params: ValueType[]; results: ValueType[] }>;
+  types: Array<CompositeType>;
   functions: Array<{ params: ValueType[]; results: ValueType[] }>;
   globals: Array<{ content_type: string; mutable: boolean }>;
   memories: Array<{ memory64: boolean; shared: boolean; initial: number; maximum?: number }>;
